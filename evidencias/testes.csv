@@ -1,0 +1,27 @@
+teste,resultado,duracao_s,detalhe
+Persistencia HTTP/1.1 e fechamento,PASS,0.04392,4 requisicoes e respostas no mesmo socket TCP; EOF apos Connection: close
+Pipelining e continuidade apos 404,PASS,0.000325,"3 requisicoes concatenadas; respostas em ordem 200,404,200"
+Cabecalho fragmentado em TCP,PASS,0.045463,
+Integridade de imagem binaria,PASS,0.029766,12582966 bytes; SHA-256 identico ao original
+HEAD sem corpo e persistente,PASS,0.043922,HEAD sem corpo; proxima resposta recebida sem bytes residuais
+Concorrencia com 12 clientes,PASS,0.076392,"{""clientes"": 12, ""bytes"": 150995592, ""duracao_s"": 0.063557, ""vazao_agregada_mbps"": 19005.923, ""rede"": ""loopback""}"
+Isolamento de cliente incompleto,PASS,0.000472,cliente com cabecalho incompleto nao bloqueou outro cliente
+Arquivo inexistente,PASS,0.000204,
+Metodo POST,PASS,0.000185,
+Host ausente,PASS,0.000171,
+Host duplicado,PASS,0.000146,
+Versao HTTP nao suportada,PASS,0.000149,
+Traversal literal,PASS,0.000132,
+Traversal codificado,PASS,0.000178,
+NUL codificado,PASS,0.000183,
+Percentual invalido,PASS,0.000141,
+Corpo de requisicao,PASS,0.000157,
+Content-Length duplicado,PASS,0.000113,
+Transfer-Encoding nao implementado,PASS,0.000116,
+Framing ambiguo,PASS,0.000113,
+Expect nao implementado,PASS,0.000342,
+Cabecalho excede limite,PASS,0.000147,
+Query string,PASS,0.000168,
+Bloqueio de link simbolico,PASS,0.000194,
+Limite de requisicoes por conexao,PASS,0.003117,100 requisicoes na conexao; encerramento anunciado na ultima
+Timeout de cabecalho incompleto,PASS,10.011357,408 apos prazo de cabecalho de aproximadamente 10 s
