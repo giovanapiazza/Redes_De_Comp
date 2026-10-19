@@ -1,0 +1,7 @@
+===== Servidor HTTP com QoS (V2) =====
+vazao usada: 4500 / 5000 kbps   conexoes ativas: 3
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.3          1       1500       1500       1.0         0.5       4256.0      1515.8      512KB
+127.0.0.4          1       1000       1000       1.0         0.5       4256.0      1021.0      344KB
+127.0.0.1          1       2000       2000       1.0         0.5       4256.0      2011.8      680KB

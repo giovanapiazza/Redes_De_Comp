@@ -1,0 +1,171 @@
+{
+  "ambiente": "Linux-6.18.44-x86_64-with-glibc2.39",
+  "python": "3.12.14",
+  "data_execucao_utc": "2026-10-05T23:43:56Z",
+  "aprovados": 26,
+  "total": 26,
+  "servidor_exit_code": 0,
+  "testes": [
+    {
+      "teste": "Persistencia HTTP/1.1 e fechamento",
+      "resultado": "PASS",
+      "duracao_s": 0.04392,
+      "detalhe": "4 requisicoes e respostas no mesmo socket TCP; EOF apos Connection: close"
+    },
+    {
+      "teste": "Pipelining e continuidade apos 404",
+      "resultado": "PASS",
+      "duracao_s": 0.000325,
+      "detalhe": "3 requisicoes concatenadas; respostas em ordem 200,404,200"
+    },
+    {
+      "teste": "Cabecalho fragmentado em TCP",
+      "resultado": "PASS",
+      "duracao_s": 0.045463,
+      "detalhe": ""
+    },
+    {
+      "teste": "Integridade de imagem binaria",
+      "resultado": "PASS",
+      "duracao_s": 0.029766,
+      "detalhe": "12582966 bytes; SHA-256 identico ao original"
+    },
+    {
+      "teste": "HEAD sem corpo e persistente",
+      "resultado": "PASS",
+      "duracao_s": 0.043922,
+      "detalhe": "HEAD sem corpo; proxima resposta recebida sem bytes residuais"
+    },
+    {
+      "teste": "Concorrencia com 12 clientes",
+      "resultado": "PASS",
+      "duracao_s": 0.076392,
+      "detalhe": "{\"clientes\": 12, \"bytes\": 150995592, \"duracao_s\": 0.063557, \"vazao_agregada_mbps\": 19005.923, \"rede\": \"loopback\"}"
+    },
+    {
+      "teste": "Isolamento de cliente incompleto",
+      "resultado": "PASS",
+      "duracao_s": 0.000472,
+      "detalhe": "cliente com cabecalho incompleto nao bloqueou outro cliente"
+    },
+    {
+      "teste": "Arquivo inexistente",
+      "resultado": "PASS",
+      "duracao_s": 0.000204,
+      "detalhe": ""
+    },
+    {
+      "teste": "Metodo POST",
+      "resultado": "PASS",
+      "duracao_s": 0.000185,
+      "detalhe": ""
+    },
+    {
+      "teste": "Host ausente",
+      "resultado": "PASS",
+      "duracao_s": 0.000171,
+      "detalhe": ""
+    },
+    {
+      "teste": "Host duplicado",
+      "resultado": "PASS",
+      "duracao_s": 0.000146,
+      "detalhe": ""
+    },
+    {
+      "teste": "Versao HTTP nao suportada",
+      "resultado": "PASS",
+      "duracao_s": 0.000149,
+      "detalhe": ""
+    },
+    {
+      "teste": "Traversal literal",
+      "resultado": "PASS",
+      "duracao_s": 0.000132,
+      "detalhe": ""
+    },
+    {
+      "teste": "Traversal codificado",
+      "resultado": "PASS",
+      "duracao_s": 0.000178,
+      "detalhe": ""
+    },
+    {
+      "teste": "NUL codificado",
+      "resultado": "PASS",
+      "duracao_s": 0.000183,
+      "detalhe": ""
+    },
+    {
+      "teste": "Percentual invalido",
+      "resultado": "PASS",
+      "duracao_s": 0.000141,
+      "detalhe": ""
+    },
+    {
+      "teste": "Corpo de requisicao",
+      "resultado": "PASS",
+      "duracao_s": 0.000157,
+      "detalhe": ""
+    },
+    {
+      "teste": "Content-Length duplicado",
+      "resultado": "PASS",
+      "duracao_s": 0.000113,
+      "detalhe": ""
+    },
+    {
+      "teste": "Transfer-Encoding nao implementado",
+      "resultado": "PASS",
+      "duracao_s": 0.000116,
+      "detalhe": ""
+    },
+    {
+      "teste": "Framing ambiguo",
+      "resultado": "PASS",
+      "duracao_s": 0.000113,
+      "detalhe": ""
+    },
+    {
+      "teste": "Expect nao implementado",
+      "resultado": "PASS",
+      "duracao_s": 0.000342,
+      "detalhe": ""
+    },
+    {
+      "teste": "Cabecalho excede limite",
+      "resultado": "PASS",
+      "duracao_s": 0.000147,
+      "detalhe": ""
+    },
+    {
+      "teste": "Query string",
+      "resultado": "PASS",
+      "duracao_s": 0.000168,
+      "detalhe": ""
+    },
+    {
+      "teste": "Bloqueio de link simbolico",
+      "resultado": "PASS",
+      "duracao_s": 0.000194,
+      "detalhe": ""
+    },
+    {
+      "teste": "Limite de requisicoes por conexao",
+      "resultado": "PASS",
+      "duracao_s": 0.003117,
+      "detalhe": "100 requisicoes na conexao; encerramento anunciado na ultima"
+    },
+    {
+      "teste": "Timeout de cabecalho incompleto",
+      "resultado": "PASS",
+      "duracao_s": 10.011357,
+      "detalhe": "408 apos prazo de cabecalho de aproximadamente 10 s"
+    }
+  ],
+  "captura": {
+    "pacotes": 0,
+    "erro": "[Errno 1] Operation not permitted",
+    "ferramenta": "AF_PACKET via Python; nao Wireshark"
+  }
+}

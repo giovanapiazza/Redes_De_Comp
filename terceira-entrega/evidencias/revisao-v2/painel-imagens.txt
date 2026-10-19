@@ -1,0 +1,30 @@
+MVP2 HTTP/1.1 QoS porta=34185 raiz=/workspace/scratch/9ef693746901/terceira-entrega-corrigida/V2/www vazao_max=128000 kbps
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 0 / 128000 kbps   conexoes ativas: 0
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 128000 / 128000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2     128000   64000.00       3.0         1.5       1418.7    103424.0     7272KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 128000 / 128000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2     128000   64000.00       3.0         1.5       1418.7     99024.9    19360KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 128000 / 128000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2     128000   64000.00       3.0         1.5       1418.7     90702.7    30432KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 128000 / 128000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2     128000   64000.00       3.0         1.5       1418.7     87818.2    41152KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 128000 / 128000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          1     128000  128000.00       3.0         1.5       1418.7     65471.4    49152KB

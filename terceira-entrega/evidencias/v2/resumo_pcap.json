@@ -1,0 +1,9 @@
+{
+  "pacotes": 1647,
+  "fluxos_tcp": 8,
+  "syn": 8,
+  "syn_ack": 8,
+  "requisicoes_get": 14,
+  "requisicoes_head": 0,
+  "respostas_200": 12
+}

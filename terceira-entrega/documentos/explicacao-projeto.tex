@@ -1,0 +1,521 @@
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[brazil]{babel}
+\usepackage{lmodern}
+\usepackage[margin=2.3cm]{geometry}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{listings}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,fit,backgrounds}
+\usepackage[most]{tcolorbox}
+\usepackage[hidelinks]{hyperref}
+\usepackage{enumitem}
+\setlist{itemsep=2pt,topsep=4pt}
+
+\definecolor{azul}{HTML}{1F4E79}
+\definecolor{cinza}{HTML}{F3F4F6}
+\definecolor{verde}{HTML}{2E7D32}
+\definecolor{laranja}{HTML}{B45309}
+
+\lstset{
+  basicstyle=\ttfamily\small,
+  backgroundcolor=\color{cinza},
+  frame=single, rulecolor=\color{gray!40},
+  breaklines=true, columns=fullflexible,
+  keywordstyle=\color{azul}\bfseries,
+  commentstyle=\color{verde}\itshape,
+  showstringspaces=false,
+  xleftmargin=4pt, xrightmargin=4pt
+}
+\newtcolorbox{nota}[1][Observação]{colback=blue!3,colframe=azul,fonttitle=\bfseries,title=#1,boxrule=0.6pt,arc=2pt}
+\newtcolorbox{alerta}[1][Atenção]{colback=orange!5,colframe=laranja,fonttitle=\bfseries,title=#1,boxrule=0.6pt,arc=2pt}
+
+\title{\textbf{Servidor HTTP/1.1 com QoS em C}\\[4pt]
+\large Explicação completa do projeto (V1 e V2)}
+\author{Giovana Piazza \and Luis Felipe Maccalli \and Vitor Moreira\\[4pt]
+\small Fundamentos e Avaliação de Redes de Computadores --- 2026/2 --- Unipampa}
+\date{Outubro de 2026}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este documento explica, de forma didática, todo o projeto desenvolvido no trabalho de
+programação em rede: um servidor HTTP/1.1 escrito em C, com sockets TCP e Pthreads, que
+atende vários clientes ao mesmo tempo (versão 1) e aplica mecanismos de Qualidade de
+Serviço --- taxa por IP, divisão de banda, controle de admissão e painel em tempo real
+(versão 2). São descritos a organização dos arquivos, a arquitetura, o funcionamento de
+cada parte do código, como compilar, executar e testar, e as limitações conhecidas.
+\end{abstract}
+
+\tableofcontents
+\newpage
+
+%=====================================================================
+\section{Visão geral}
+
+O enunciado da disciplina pede um servidor HTTP para Linux, em linguagem C com Pthreads,
+desenvolvido em versões incrementais (MVPs):
+
+\begin{description}
+  \item[V1 --- servidor concorrente:] atender vários clientes simultaneamente seguindo o
+  HTTP/1.1, com \emph{conexões persistentes} (várias requisições no mesmo socket TCP).
+  \item[V2 --- Qualidade de Serviço (QoS):] enviar os objetos (exceto o HTML) com taxa
+  controlada conforme o IP do cliente; dividir a taxa entre conexões do mesmo IP; aplicar
+  controle de admissão com base na vazão máxima do servidor; e mostrar em tempo real os
+  clientes atendidos, com estimativas de atraso fim-a-fim e largura de banda baseadas no RTT.
+\end{description}
+
+O servidor entrega somente \textbf{conteúdo estático} (arquivos de uma pasta), o que basta
+para observar o comportamento das camadas de aplicação (HTTP) e transporte (TCP). A página
+de teste contém duas imagens BMP de aproximadamente 12\,MiB cada, para que as transferências
+durem tempo suficiente para serem medidas e controladas.
+
+\begin{table}[h]
+\centering
+\caption{Resumo do que cada versão implementa.}
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Versão} & \textbf{Funcionalidades} \\
+\midrule
+V1 & Socket TCP IPv4, uma thread por conexão, GET e HEAD, \texttt{index.html} padrão,
+     Content-Length e tipos MIME, conexão persistente, \texttt{Connection: close},
+     pipelining, respostas de erro, proteção de caminhos, timeouts, encerramento por sinal. \\
+V2 & Tudo da V1 + arquivo de taxas por IP, taxa padrão de 1000\,kbps, envio com taxa
+     controlada para não-HTML, divisão da taxa entre conexões do mesmo IP, controle de
+     admissão por vazão máxima, painel no terminal com RTT, atraso e banda estimados. \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+%=====================================================================
+\section{Organização dos arquivos}
+
+\begin{lstlisting}
+Redes_De_Comp/
+|-- README.md                  # readme da V1
+|-- V1/                        # primeira versao (MVP1)
+|   |-- Makefile
+|   |-- src/server.c           # servidor concorrente HTTP/1.1
+|   |-- www/index.html         # pagina com duas imagens
+|   |-- tools/generate_images.py   # gera imagem1.bmp e imagem2.bmp (~12 MiB)
+|   |-- tools/inspect_pcap.py      # le capturas PCAP
+|   `-- tests/test_server.py       # 26 testes de integracao
+|-- V2/                        # segunda versao (MVP2, QoS)
+|   |-- Makefile
+|   |-- README.md
+|   |-- src/server.c           # V1 + QoS
+|   |-- taxas.txt              # IP e taxa em kbps
+|   |-- teste.sh               # teste simples com curl
+|   |-- www/index.html
+|   `-- tools/generate_images.py
+|-- evidencias/                # resultados dos testes da V1
+`-- documentos/                # plano de experimentos e este documento
+\end{lstlisting}
+
+As imagens BMP não ficam no Git (são grandes); elas são geradas com \texttt{make fixtures}.
+
+%=====================================================================
+\section{Conceitos de rede usados}
+
+\paragraph{Sockets TCP.} O servidor usa a API de sockets do Linux. A sequência é
+\texttt{socket()} $\rightarrow$ \texttt{bind()} (associa à porta) $\rightarrow$
+\texttt{listen()} $\rightarrow$ \texttt{accept()} (uma vez por cliente). Cada
+\texttt{accept()} devolve um novo descritor, usado com \texttt{recv()} e \texttt{send()}.
+O TCP garante entrega ordenada e confiável de um fluxo de bytes; ele \emph{não} preserva
+fronteiras de mensagem, por isso o servidor precisa procurar o fim do cabeçalho HTTP por conta própria.
+
+\paragraph{HTTP/1.1.} Uma requisição é composta por uma linha inicial
+(\texttt{GET /imagem1.bmp HTTP/1.1}), campos de cabeçalho (\texttt{Host}, \texttt{Connection}\ldots)
+e uma linha vazia (\texttt{\textbackslash r\textbackslash n\textbackslash r\textbackslash n}).
+A resposta tem a linha de status (\texttt{HTTP/1.1 200 OK}), cabeçalhos e o corpo.
+
+\paragraph{Conexões persistentes.} No HTTP/1.1 a conexão fica aberta por padrão
+(\emph{keep-alive}), e o cliente pode enviar várias requisições no mesmo socket. Para
+o cliente saber onde termina cada resposta, o servidor sempre manda \texttt{Content-Length}.
+O cliente encerra enviando \texttt{Connection: close}.
+
+\paragraph{Threads (Pthreads).} Cada conexão é atendida por uma thread própria
+(\texttt{pthread\_create}). Assim, um cliente lento não bloqueia os demais. Dados
+compartilhados entre threads (tabelas, contadores, logs) são protegidos por um
+\emph{mutex} (\texttt{pthread\_mutex\_t}).
+
+\paragraph{QoS e controle de taxa.} Qualidade de Serviço aqui significa limitar quanto
+de banda cada cliente pode usar e não aceitar mais clientes do que o servidor consegue
+atender. Taxas são expressas em kbps (1\,kbps = 1000 bits por segundo).
+
+%=====================================================================
+\section{Arquitetura}
+
+\begin{figure}[h]
+\centering
+\begin{tikzpicture}[
+  font=\small,
+  caixa/.style={draw=azul, rounded corners=3pt, fill=blue!4, align=center, minimum height=9mm, inner sep=5pt},
+  dado/.style={draw=laranja, fill=orange!6, align=center, inner sep=5pt, rounded corners=1pt},
+  seta/.style={-{Stealth[length=2.4mm]}, thick, draw=gray!70!black},
+  pont/.style={dashed, draw=laranja!80!black, -{Stealth[length=2mm]}}
+]
+\node[caixa] (cli) {Clientes\\(curl, wget, navegador)};
+\node[caixa, right=1.2cm of cli] (main) {Thread principal\\\texttt{poll()} + \texttt{accept4()}};
+\node[caixa, right=1.2cm of main, fill=orange!8, draw=laranja] (adm) {Controle de\\admissão (V2)};
+\node[caixa, below=1.4cm of adm] (t1) {Thread \texttt{serve()}\\conexão 1};
+\node[caixa, left=0.6cm of t1] (t2) {Thread \texttt{serve()}\\conexão 2};
+\node[caixa, left=0.6cm of t2] (tn) {Thread \texttt{serve()}\\conexão $n$};
+\node[dado, below=1.3cm of t2, minimum width=7.4cm] (tab) {Estado compartilhado (protegido por \texttt{lock})\\
+  \texttt{clients[]}, \texttt{active}, \texttt{ips[]}, \texttt{vazao\_usada}};
+\node[caixa, right=0.7cm of tab, fill=green!5, draw=verde] (pai) {Thread \texttt{painel()}\\(V2, a cada 1\,s)};
+\node[dado, left=0.6cm of tab] (www) {Pasta \texttt{www/}\\e \texttt{taxas.txt}};
+
+\draw[seta] (cli) -- node[above]{TCP} (main);
+\draw[seta] (main) -- (adm);
+\draw[seta] (adm) -- node[right]{aceito} (t1);
+\draw[seta] (adm.south west) -- (t2.north east);
+\draw[seta] (adm.south west) -- (tn.north east);
+\draw[seta] (adm.north) -- ++(0,0.6) -| node[pos=0.25,above]{recusado: 503} (cli.north);
+\draw[pont] (t1) -- (tab);
+\draw[pont] (t2) -- (tab);
+\draw[pont] (tn) -- (tab);
+\draw[pont] (pai) -- (tab);
+\draw[pont] (www) -- (tn);
+\end{tikzpicture}
+\caption{Visão geral das threads e dos dados compartilhados do servidor.}
+\end{figure}
+
+\begin{enumerate}
+  \item A \textbf{thread principal} cria o socket de escuta e fica em um laço com
+  \texttt{poll()} (espera de 500\,ms, para conseguir perceber o pedido de parada) e
+  \texttt{accept4()}.
+  \item Para cada novo cliente, procura um espaço livre em \texttt{clients[]} (máximo de
+  128 conexões). Na V2, também passa pelo \textbf{controle de admissão}.
+  \item Se aceito, aloca uma estrutura \texttt{Client} (descritor, posição na tabela, IP)
+  e cria uma thread que executa \texttt{serve()}. A thread é \emph{detached}: libera os
+  próprios recursos ao terminar.
+  \item Cada thread \texttt{serve()} executa o ciclo \emph{ler cabeçalho $\rightarrow$
+  interpretar $\rightarrow$ responder $\rightarrow$ ler de novo} no mesmo socket, até o
+  cliente fechar, pedir \texttt{close}, ocorrer erro ou atingir 100 requisições.
+  \item Na V2, a thread \texttt{painel()} redesenha a tela a cada segundo.
+\end{enumerate}
+
+%=====================================================================
+\section{Versão 1 --- servidor HTTP/1.1 concorrente}
+
+\subsection{Leitura do cabeçalho (\texttt{read\_header})}
+Como o TCP é um fluxo de bytes, uma requisição pode chegar em vários pedaços ou várias
+requisições podem chegar juntas. A função mantém um buffer de até 16\,KiB por conexão e:
+\begin{itemize}
+  \item procura a sequência \texttt{\textbackslash r\textbackslash n\textbackslash r\textbackslash n};
+  quando encontra, devolve o tamanho do cabeçalho;
+  \item se o buffer enche sem achar o fim, responde \textbf{431} (cabeçalho grande demais);
+  \item se passarem 10\,s sem completar o cabeçalho, responde \textbf{408} (timeout);
+  \item os bytes que sobram depois do cabeçalho são mantidos no buffer (com \texttt{memmove}),
+  pois pertencem à próxima requisição. É isso que permite o \emph{pipelining}.
+\end{itemize}
+
+\subsection{Interpretação da requisição (\texttt{parse\_request})}
+Separa método, alvo e versão da primeira linha e percorre os campos de cabeçalho.
+As principais regras são:
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Situação} & \textbf{Resposta} \\
+\midrule
+Versão diferente de \texttt{HTTP/1.1} & 505 HTTP Version Not Supported \\
+Método diferente de GET/HEAD & 405 Method Not Allowed (com \texttt{Allow: GET, HEAD}) \\
+\texttt{Host} ausente, duplicado ou inválido & 400 Bad Request \\
+Alvo maior que 4096 bytes & 414 URI Too Long \\
+\texttt{Transfer-Encoding} & 501 Not Implemented \\
+\texttt{Expect} & 417 Expectation Failed \\
+Corpo (\texttt{Content-Length} $\neq$ 0) ou framing ambíguo & 400 e fecha a conexão \\
+\texttt{Connection: close} & marca para fechar após a resposta \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+Recusar corpos é uma decisão de segurança: como o servidor não lê corpo, se aceitasse
+um, os bytes do corpo seriam interpretados como a próxima requisição.
+
+\subsection{Localização do arquivo (\texttt{open\_resource})}
+\begin{itemize}
+  \item a \emph{query string} (depois de \texttt{?}) é ignorada;
+  \item sequências \texttt{\%XX} são decodificadas; inválidas geram 400;
+  \item se o caminho termina em \texttt{/}, usa \texttt{index.html};
+  \item o caminho é aberto componente por componente com \texttt{openat()} e
+  \texttt{O\_NOFOLLOW}, a partir do descritor da pasta raiz. Componentes \texttt{..} ou
+  \texttt{.} geram 403. Isso impede sair da pasta \texttt{www/} (\emph{path traversal}) e
+  seguir links simbólicos;
+  \item apenas arquivos regulares são enviados (diretórios geram 403); arquivo inexistente gera 404.
+\end{itemize}
+
+\subsection{Envio da resposta}
+A função \texttt{header()} monta a linha de status e os campos \texttt{Date},
+\texttt{Server}, \texttt{Content-Type} (pela extensão: html, css, js, png, jpg, bmp\ldots),
+\texttt{Content-Length} e \texttt{Connection}. Em GET, o arquivo é lido e enviado em blocos
+de até 64\,KiB; em HEAD, somente os cabeçalhos. A função \texttt{send\_all()} repete o
+\texttt{send()} até enviar tudo, porque o kernel pode aceitar só parte dos bytes
+(\emph{escrita parcial}). O sinal \texttt{SIGPIPE} é ignorado para que um cliente que
+fecha a conexão no meio não derrube o processo.
+
+\subsection{Logs e encerramento}
+Cada requisição gera uma linha de log com IP, socket, número da requisição, método, alvo,
+status, bytes e conexões ativas. \texttt{SIGINT} (Ctrl+C) e \texttt{SIGTERM} ativam a
+variável \texttt{stopping}; o laço principal termina, os sockets dos clientes recebem
+\texttt{shutdown()} e a thread principal espera (variável de condição \texttt{empty})
+até todas as threads saírem.
+
+\subsection{Limites técnicos}
+128 conexões simultâneas (acima disso: 503), 100 requisições por conexão, cabeçalho de
+16\,KiB, 10\,s para completar cada cabeçalho e timeout de envio (\texttt{SO\_SNDTIMEO}).
+Esse limite de 128 protege os recursos do processo; ele \textbf{não} é o controle de
+admissão por vazão da V2.
+
+%=====================================================================
+\section{Versão 2 --- Qualidade de Serviço}
+
+As alterações da V2 estão todas em \texttt{V2/src/server.c} e marcadas com comentários.
+
+\subsection{Arquivo de taxas}
+O arquivo \texttt{taxas.txt} tem uma linha por cliente, no formato \texttt{IP KBPS}:
+
+\begin{lstlisting}
+127.0.0.1 2000
+127.0.0.2 3000
+192.168.0.10 500
+\end{lstlisting}
+
+A função \texttt{carrega\_taxas()} lê o arquivo na inicialização com \texttt{fscanf}
+(até 100 linhas) e \texttt{busca\_taxa()} procura o IP do cliente. Se o IP não estiver
+cadastrado, usa a taxa padrão de \textbf{1000\,kbps}, como pede o enunciado. Se o arquivo
+não existir, todos os clientes recebem 1000\,kbps.
+
+\subsection{Tabela de IPs (\texttt{InfoIP})}
+Para dividir a banda e alimentar o painel, o servidor mantém uma tabela \texttt{ips[]}
+com uma entrada por IP:
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\linewidth}{@{}lX@{}}
+\toprule
+\textbf{Campo} & \textbf{Significado} \\
+\midrule
+\texttt{conexoes} & número de conexões abertas desse IP agora \\
+\texttt{taxa} & taxa total do IP (kbps), dividida entre as conexões \\
+\texttt{t\_html}, \texttt{tam\_html} & momento (ms) e tamanho do último HTML pedido \\
+\texttt{rtt}, \texttt{banda} & estimativas de RTT (ms) e de banda do cliente (kbps) \\
+\texttt{taxa\_real} & taxa medida no envio em andamento (kbps) \\
+\texttt{bytes} & total de bytes de objetos enviados para o IP \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+A entrada não é apagada quando o cliente desconecta, para não perder o tempo do HTML caso o
+cliente (por exemplo, o \texttt{wget}) abra outra conexão para baixar as imagens. Uma
+entrada com zero conexões pode ser reaproveitada por outro IP (função \texttt{acha\_ip()}).
+
+\subsection{Controle de admissão}
+A vazão máxima do servidor é o terceiro parâmetro da linha de comando. A variável
+\texttt{vazao\_usada} guarda a soma das taxas dos IPs que estão sendo atendidos. Quando uma
+conexão chega:
+
+\begin{enumerate}
+  \item se o IP \textbf{já tem conexão aberta}, ele é aceito sem somar nada, pois a nova
+  conexão vai apenas dividir a taxa que o IP já tem;
+  \item se é um \textbf{IP novo}, ele só é aceito se
+  \[ \texttt{vazao\_usada} + \texttt{taxa\_do\_ip} \le \texttt{vazao\_max}; \]
+  nesse caso \texttt{vazao\_usada} aumenta pela taxa do IP;
+  \item caso contrário, o servidor responde \textbf{503 Service Unavailable} e fecha a conexão.
+\end{enumerate}
+
+Quando a última conexão de um IP termina, a taxa dele é devolvida
+(\texttt{vazao\_usada -= taxa}). A interpretação de ``1000\,kbps se viável'' adotada pela
+equipe foi: se não couber, o cliente é recusado.
+
+\subsection{Envio com taxa controlada}
+O HTML é enviado sem limite (como pede o enunciado). Para os demais objetos, o arquivo é
+enviado em blocos de 8\,KiB e, depois de cada bloco, a thread dorme o tempo que esse bloco
+levaria na taxa permitida. Para um bloco de $n$ bytes e taxa $R$ em kbps:
+\[
+t_{\text{espera}}\;[\mu s] \;=\; \frac{8n \text{ bits}}{R \times 1000 \text{ bits/s}} \times 10^{6}
+\;=\; \frac{8n \times 1000}{R}.
+\]
+Exemplo: $n = 8192$ e $R = 1000$\,kbps resultam em $65\,536\,\mu s \approx 65{,}5$\,ms por
+bloco, ou seja, cerca de 125\,KB/s.
+
+\begin{lstlisting}[language=C]
+long taxa_con = ips[c->ip_idx].taxa / ips[c->ip_idx].conexoes;
+long espera = (long)n * 8 * 1000 / taxa_con;  /* em microssegundos */
+usleep((useconds_t)espera);
+\end{lstlisting}
+
+\subsection{Divisão da taxa entre conexões do mesmo IP}
+A taxa de cada conexão é $R_{\text{con}} = R_{\text{IP}} / N_{\text{conexões}}$. Esse valor
+é recalculado \textbf{a cada bloco}, então se o cliente abre uma segunda conexão no meio de
+um download, as duas passam a usar metade da taxa a partir do bloco seguinte. Se uma delas
+termina, a outra volta à taxa cheia.
+
+\subsection{Estimativa de RTT, atraso e banda}
+Seguindo o enunciado, o RTT é estimado pelo intervalo entre duas requisições consecutivas
+do mesmo cliente: a do HTML e a do primeiro objeto referenciado nele.
+\begin{itemize}
+  \item quando chega o pedido do HTML, guarda-se o instante $t_{\text{html}}$ e o tamanho do HTML;
+  \item quando chega o primeiro pedido de um objeto não-HTML desse IP:
+  $\text{RTT} \approx t_{\text{objeto}} - t_{\text{html}}$ (mínimo de 1\,ms, para evitar
+  divisão por zero no \emph{localhost});
+  \item \textbf{atraso fim-a-fim} $\approx \text{RTT}/2$;
+  \item \textbf{banda estimada} $\approx \dfrac{8 \times \text{tamanho do HTML (bytes)}}{\text{RTT (ms)}}$ em kbps
+  (bits por milissegundo equivalem a kbps).
+\end{itemize}
+
+\begin{alerta}[Limitação da estimativa]
+O intervalo medido não é um RTT puro: ele inclui o tempo de transmissão do HTML, o tempo
+de o cliente interpretar a página e decidir pedir a imagem. Por isso é uma
+\emph{estimativa}, não uma medição direta do atraso unidirecional. Navegadores podem nem
+pedir as imagens ou pedi-las em outra ordem (por exemplo, \texttt{favicon.ico}); por isso o
+enunciado recomenda \texttt{curl} e \texttt{wget}.
+\end{alerta}
+
+\subsection{Painel em tempo real}
+A thread \texttt{painel()} limpa o terminal com o código ANSI
+\texttt{\textbackslash 033[2J\textbackslash 033[H} e, a cada segundo, mostra a vazão usada
+e uma linha por IP com conexões abertas. Exemplo real, com duas conexões de 127.0.0.1
+dividindo 2000\,kbps:
+
+\begin{lstlisting}[columns=fixed,basicstyle=\ttfamily\scriptsize]
+===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 4000 kbps   conexoes ativas: 2
+
+IP          CON  TAXA_IP  TAXA/CON  RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)  ENVIADO
+127.0.0.1     2     2000      1000      1.0         0.5       4256.0      1023.6    608KB
+\end{lstlisting}
+
+Como a tela é do painel (\texttt{stdout}), os logs de requisição passaram a ir para o
+\texttt{stderr}; para guardá-los use \texttt{2> server.log}. Conexões recusadas aparecem no
+log como \texttt{RECUSADO ip=\ldots}.
+
+\subsection{Sincronização}
+Todos os acessos a \texttt{clients[]}, \texttt{active}, \texttt{ips[]} e
+\texttt{vazao\_usada} são feitos com o mutex \texttt{lock}. A admissão (escolher o espaço,
+verificar e somar a taxa, incrementar as conexões do IP) é feita inteira dentro de uma única
+seção crítica, para que dois clientes chegando juntos não ultrapassem a vazão máxima.
+O \texttt{usleep} é chamado \emph{fora} do lock, senão uma conexão dormindo travaria todas.
+
+%=====================================================================
+\section{Como compilar e executar}
+
+Dependências: Linux, GCC, Make, Python 3 (para gerar as imagens) e \texttt{curl}.
+\begin{lstlisting}
+sudo apt install build-essential python3 curl tcpdump wireshark iptraf-ng
+\end{lstlisting}
+
+\subsection*{V1}
+\begin{lstlisting}
+cd V1
+make && make fixtures
+./server 8080 www              # PORTA  DIRETORIO_WEB
+\end{lstlisting}
+
+\subsection*{V2}
+\begin{lstlisting}
+cd V2
+make && make fixtures
+./server 8080 www 5000 taxas.txt 2> server.log
+#        PORTA DIR  VAZAO_MAX_KBPS [ARQUIVO_TAXAS]
+\end{lstlisting}
+
+Para ver o RTT no painel, peça o HTML e uma imagem na mesma execução do curl:
+\begin{lstlisting}
+curl -o /dev/null http://localhost:8080/ -o /dev/null http://localhost:8080/imagem1.bmp
+\end{lstlisting}
+De outro computador, use \texttt{http://IP\_DO\_SERVIDOR:8080/} e libere a porta no
+firewall. Uma imagem de 12\,MiB a 1000\,kbps leva cerca de 100\,s.
+
+%=====================================================================
+\section{Testes}
+
+\subsection{V1 --- suíte de integração}
+\texttt{make test} executa \texttt{tests/test\_server.py}, que inicia o servidor real em uma
+porta livre e conversa com ele por sockets TCP. Foram aprovados \textbf{26 de 26 testes},
+incluindo: quatro requisições no mesmo socket, pipelining (200, 404, 200 em ordem),
+cabeçalho fragmentado, integridade das imagens por SHA-256, HEAD, 12 clientes concorrentes,
+métodos inválidos, \texttt{Host} ausente/duplicado, versão não suportada, path traversal,
+link simbólico, cabeçalho grande, limite de requisições e timeout de 10\,s. Os resultados
+estão em \texttt{evidencias/}.
+
+\subsection{V2 --- \texttt{teste.sh}}
+\texttt{make teste} executa um script simples que sobe o servidor na porta 8090 com vazão
+máxima de 4000\,kbps, cria um arquivo \texttt{www/teste.bin} de 500\,KB e faz quatro testes:
+
+\begin{table}[h]
+\centering
+\begin{tabularx}{\linewidth}{@{}lXl@{}}
+\toprule
+\textbf{Teste} & \textbf{Esperado} & \textbf{Obtido} \\
+\midrule
+1. Objeto a 2000\,kbps & $\approx$ 2\,s e 250\,000 B/s & 2,04\,s; 250\,568 B/s \\
+2. Duas conexões do mesmo IP & $\approx$ 4\,s cada (1000\,kbps cada) & 4,11\,s e 4,11\,s \\
+3. Admissão: 127.0.0.2 (3000) com 2000 em uso & 503 & 503 \\
+4. HTML sem limite & muito rápido & 0,0002\,s \\
+\bottomrule
+\end{tabularx}
+\end{table}
+
+O teste 3 usa \texttt{curl --interface 127.0.0.2}: no Linux toda a faixa
+\texttt{127.0.0.0/8} é \emph{loopback}, o que permite simular um segundo IP na mesma máquina.
+
+\subsection{Experimentos com ferramentas de rede}
+O arquivo \texttt{documentos/plano-experimentos.md} descreve o procedimento planejado:
+capturar com \texttt{tcpdump -i INTERFACE tcp port 8080 -w experimento.pcap}, analisar no
+Wireshark (filtro \texttt{tcp.port == 8080}, \emph{Follow TCP Stream}, \emph{Decode As HTTP}),
+acompanhar a vazão no \texttt{iptraf-ng} e repetir com 1, 4 e 12 clientes, em rede cabeada
+e Wi-Fi. Na V2, o esperado é ver no IPTraf a vazão de cada cliente próxima da taxa do
+\texttt{taxas.txt}. Essas medições ainda precisam ser feitas pela equipe.
+
+%=====================================================================
+\section{Limitações e problemas conhecidos}
+
+\begin{itemize}
+  \item Servidor didático: só conteúdo estático, só IPv4, sem HTTPS, sem corpo de
+  requisição e sem \emph{chunked}.
+  \item A taxa real fica um pouco abaixo da configurada (ex.: cerca de 1023 kbps medidos
+  contra 1000 configurados, e um pouco menos em redes reais), porque o \texttt{usleep} não
+  desconta o tempo gasto no \texttt{send}.
+  \item A divisão da taxa é inteira (1000/3 = 333\,kbps).
+  \item O arquivo de taxas não aceita comentários nem linhas fora do formato: a leitura para
+  na primeira linha inválida.
+  \item O valor da vazão máxima é lido com \texttt{atol}, sem validação completa.
+  \item O painel segura o mutex enquanto imprime, o que pode atrasar um pouco as outras threads.
+  \item O RTT é uma estimativa (ver seção de RTT); a banda estimada depende do tamanho do HTML.
+  \item O \emph{keep-alive} fecha após 10\,s sem nova requisição.
+  \item No \texttt{teste.sh}, a primeira linha do teste 1 aparece como ``objeto:'' em vez de
+  ``html:'', pois com várias URLs o curl usa apenas o último \texttt{-w}.
+\end{itemize}
+
+\begin{nota}[Uso de IA]
+Conforme exigido pela especificação, partes do código da V2 foram produzidas com apoio de IA
+(Claude) e revisadas pela equipe; isso está indicado no topo de \texttt{V2/src/server.c} e no
+\texttt{V2/README.md}. Todos os integrantes devem entender o código antes da demonstração.
+\end{nota}
+
+%=====================================================================
+\section*{Referências}
+\addcontentsline{toc}{section}{Referências}
+\begin{itemize}
+  \item Fundamentos e Avaliação de Redes de Computadores (2026). \emph{Trabalho de
+  programação em rede: especificação do trabalho prático}. 2026/2.
+  \item Forouzan, B. A.; Mosharraf, F. (2013). \emph{Redes de computadores: uma abordagem
+  top-down}. Porto Alegre: AMGH.
+  \item Fielding, R.; Nottingham, M.; Reschke, J. (2022). \emph{HTTP/1.1}. RFC 9112. IETF.
+  \url{https://www.rfc-editor.org/rfc/rfc9112}
+  \item Fielding, R.; Nottingham, M.; Reschke, J. (2022). \emph{HTTP Semantics}. RFC 9110. IETF.
+  \url{https://www.rfc-editor.org/rfc/rfc9110}
+  \item Lawrence Livermore National Laboratory. \emph{POSIX Threads Programming}.
+  \url{https://computing.llnl.gov/tutorials/pthreads/}
+  \item Repositório da equipe: \url{https://github.com/giovanapiazza/Redes_De_Comp}
+\end{itemize}
+
+\end{document}

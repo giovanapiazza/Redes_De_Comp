@@ -1,0 +1,8 @@
+V2/server
+V1/server
+V2/www/*.bmp
+V1/www/*.bmp
+V2/www/*.bin
+*.aux
+*.log
+*.out

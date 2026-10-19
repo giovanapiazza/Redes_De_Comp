@@ -1,0 +1,86 @@
+# Segunda versão — servidor HTTP/1.1 com QoS
+
+- Giovana Piazza
+- Luis Felipe Maccalli
+- Vitor Moreira
+
+## O que tem de novo na V2
+
+A base é a mesma da V1 (threads, GET/HEAD, conexão persistente). Foi adicionado:
+
+- **taxa por IP**: lida do arquivo `taxas.txt` (formato `IP KBPS`, uma por linha).
+  Se o IP não estiver no arquivo usa 1000 kbps;
+- **controle de taxa**: só pros objetos que não são html (as imagens). O envio é
+  feito em blocos de 8 KB e depois de cada bloco a thread dorme (`nanosleep`) o tempo
+  que o bloco deveria levar na taxa do cliente;
+- **divisão da taxa**: conexões do mesmo IP dividem a taxa dele (taxa / nº de conexões);
+- **controle de admissão**: a vazão máxima do servidor é passada na linha de comando.
+  Um IP novo só é aceito se a taxa dele couber no que sobra, senão recebe 503;
+- **painel em tempo real** no terminal (atualiza a cada 1 s) com os clientes, a taxa,
+  o RTT estimado (tempo entre pedir o html e o primeiro objeto), atraso ≈ RTT/2 e
+  banda estimada ≈ tamanho do html / RTT.
+
+Os logs de cada requisição agora vão pro **stderr** (o stdout é do painel).
+
+## Compilar e executar
+
+```bash
+make
+make fixtures                       # gera as imagens de 12 MB
+./server 8080 www 5000 taxas.txt 2> server.log
+```
+
+Parâmetros: `PORTA DIRETORIO_WEB VAZAO_MAX_KBPS [ARQUIVO_TAXAS]` (padrão `taxas.txt`).
+
+Teste com curl (html e imagem na mesma conexão, aparece o RTT no painel):
+
+```bash
+curl -o /dev/null http://localhost:8080/ -o /dev/null http://localhost:8080/imagem1.bmp
+```
+
+## Teste
+
+```bash
+make teste
+```
+
+O `teste.sh` sobe o servidor sozinho (porta 8090, vazão 4000 kbps) e testa: taxa
+de um IP, duas conexões do mesmo IP dividindo a taxa, admissão (o 127.0.0.2 tem que
+levar 503) e que o html não é limitado.
+
+## Revisão de 19/10/2026
+
+- Taxas e capacidade: inteiros entre 1 e 1.000.000.000 kbps; rejeita zero,
+  negativos, lixo numérico, overflow, IPv4 inválido e IP duplicado.
+- Arquivo de taxas aceita linhas vazias e comentários com `#`. Um arquivo
+  explicitamente informado que não existe causa erro de inicialização.
+- A coluna REAL é a vazão agregada por IP na janela entre atualizações do painel.
+  ENVIADO soma bytes de objetos não HTML na sessão de atendimento do IP.
+- A divisão por conexão usa ponto flutuante e preserva taxas abaixo de 1 kbps.
+- As esperas usam nanosleep em fatias curtas para permitir encerramento.
+- `make check`: validação, persistência, imagens completas com SHA-256,
+  admissão, taxa padrão, divisão por IP e painel agregado.
+- `bash avaliar-ferramentas.sh lo`: procedimento de captura com duas imagens
+  grandes. Consulte COMO-VALIDAR.md para Wireshark/IPTraf e hosts distintos.
+
+## Limitações conhecidas
+
+O intervalo HTML–objeto inclui processamento e transmissão; não é RTT TCP direto.
+RTT/2 e tamanho do HTML/intervalo são estimativas didáticas, não medições de
+atraso unidirecional ou da capacidade do enlace. A resolução continua em ms.
+O controle envia um bloco antes da espera; admite rajadas de 8 KiB e pode
+produzir média ligeiramente superior em arquivos curtos. O tempo de envio não é
+descontado da espera. A soma reservada limita taxas dos IPs admitidos; HTML,
+cabeçalhos e respostas de erro não entram no limitador de objetos. Conexões
+ociosas também participam da divisão. A associação HTML/objeto é feita por IP e
+pode misturar navegações simultâneas do mesmo endereço.
+
+## Autoria e referências
+
+Partes da V2 original foram produzidas com apoio de Claude (Anthropic), conforme
+registro da equipe. A revisão de validação, painel, testes e documentação teve
+apoio de OpenAI ChatGPT em 19/10/2026. A equipe deve revisar e compreender as
+alterações. A V1 também contém a declaração de apoio de IA original.
+
+Referências: especificação 2026/2, Forouzan, RFC 9110/9112; OpenAI ChatGPT,
+https://chatgpt.com/; Anthropic Claude, https://claude.ai/.

@@ -1,0 +1,138 @@
+[
+  {
+    "teste": "rejeita taxa zero",
+    "aprovado": true,
+    "duracao_s": 0.0105,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmp7gk28kpo, linha 1"
+  },
+  {
+    "teste": "rejeita taxa negativa",
+    "aprovado": true,
+    "duracao_s": 0.0172,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmpbg4x0byl, linha 1"
+  },
+  {
+    "teste": "rejeita IP invalido",
+    "aprovado": true,
+    "duracao_s": 0.0076,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmprcd7rvnm, linha 1"
+  },
+  {
+    "teste": "rejeita taxa nao numerica",
+    "aprovado": true,
+    "duracao_s": 0.0219,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmp9lm97yvt, linha 1"
+  },
+  {
+    "teste": "rejeita taxa fracionaria no arquivo",
+    "aprovado": true,
+    "duracao_s": 0.0066,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmpksw7o6mw, linha 1"
+  },
+  {
+    "teste": "rejeita IP duplicado",
+    "aprovado": true,
+    "duracao_s": 0.0215,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmpdxb5dnhp, linha 2"
+  },
+  {
+    "teste": "rejeita campo extra",
+    "aprovado": true,
+    "duracao_s": 0.0309,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmpi7tid4ki, linha 1"
+  },
+  {
+    "teste": "rejeita overflow numerico",
+    "aprovado": true,
+    "duracao_s": 0.0098,
+    "detalhe": "Arquivo de taxas invalido: /tmp/tmpr48b5s9h, linha 1"
+  },
+  {
+    "teste": "rejeita capacidade 0",
+    "aprovado": true,
+    "duracao_s": 0.006,
+    "detalhe": "Vazao invalida"
+  },
+  {
+    "teste": "rejeita capacidade -1",
+    "aprovado": true,
+    "duracao_s": 0.0103,
+    "detalhe": "Vazao invalida"
+  },
+  {
+    "teste": "rejeita capacidade 5000abc",
+    "aprovado": true,
+    "duracao_s": 0.0052,
+    "detalhe": "Vazao invalida"
+  },
+  {
+    "teste": "rejeita capacidade 99999999999999999999999",
+    "aprovado": true,
+    "duracao_s": 0.0068,
+    "detalhe": "Vazao invalida"
+  },
+  {
+    "teste": "aceita comentarios e linhas vazias",
+    "aprovado": true,
+    "duracao_s": 2.0492,
+    "detalhe": "Servidor iniciou e encerrou normalmente."
+  },
+  {
+    "teste": "dois clientes: HTML e duas imagens grandes, persistencia e SHA256",
+    "aprovado": true,
+    "duracao_s": 7.0456,
+    "detalhe": {
+      "clientes": [
+        {
+          "bytes": 25165932,
+          "tempo_s": 4.6384
+        },
+        {
+          "bytes": 25165932,
+          "tempo_s": 4.2733
+        }
+      ],
+      "bytes_total": 50331864,
+      "tempo_lote_s": 4.6505,
+      "vazao_util_kbps": 86582.31,
+      "persistencia": true,
+      "sha256": true
+    }
+  },
+  {
+    "teste": "admissao e liberacao da reserva",
+    "aprovado": true,
+    "duracao_s": 2.0589,
+    "detalhe": "503 quando nao cabe; 200 depois de liberar a reserva."
+  },
+  {
+    "teste": "taxa padrao e divisao entre duas conexoes",
+    "aprovado": true,
+    "duracao_s": 19.2367,
+    "detalhe": {
+      "padrao_kbps": 936.2,
+      "mesmo_ip_kbps": [
+        950.4,
+        944.1
+      ]
+    }
+  },
+  {
+    "teste": "painel soma bytes das duas conexoes do IP",
+    "aprovado": true,
+    "duracao_s": 10.0346,
+    "detalhe": {
+      "amostras_real_ip_kbps": [
+        2002.3,
+        2097.2,
+        1964.1,
+        1964.1,
+        1964.1,
+        1966.1,
+        1966.1,
+        1966.1
+      ],
+      "alvo_agregado_kbps": 2000
+    }
+  }
+]

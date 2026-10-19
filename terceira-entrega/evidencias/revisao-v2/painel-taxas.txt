@@ -1,0 +1,90 @@
+MVP2 HTTP/1.1 QoS porta=47075 raiz=/workspace/scratch/9ef693746901/terceira-entrega-corrigida/V2/www vazao_max=10000 kbps
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 0 / 10000 kbps   conexoes ativas: 0
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -      1008.2      104KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       983.0      224KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       982.1      344KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       458.8      400KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       982.1      520KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       983.0      640KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -      1047.5      768KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       983.0      888KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 1000 / 10000 kbps   conexoes ativas: 1
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.4          1       1000    1000.00         -           -            -       982.1     1008KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      2078.2      224KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1960.2      464KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1966.1      704KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1964.1      944KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1966.1     1184KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      2029.6     1432KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1942.8     1672KB
+[2J[H===== Servidor HTTP com QoS (V2) =====
+vazao usada: 2000 / 10000 kbps   conexoes ativas: 2
+
+IP               CON    TAXA_IP   TAXA/CON   RTT(ms)  ATRASO(ms)  BANDA(kbps)  REAL(kbps)    ENVIADO
+127.0.0.1          2       2000    1000.00         -           -            -      1245.1     1848KB
