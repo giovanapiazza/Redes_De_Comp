@@ -44,9 +44,10 @@ curl -o /dev/null http://localhost:8080/ -o /dev/null http://localhost:8080/imag
 make teste
 ```
 
-O `teste.sh` sobe o servidor sozinho (porta 8090, vazão 4000 kbps) e testa: taxa
-de um IP, duas conexões do mesmo IP dividindo a taxa, admissão (o 127.0.0.2 tem que
-levar 503) e que o html não é limitado.
+`make teste` e `make check` executam a suíte `tests/test_v2.py`, com 17 verificações.
+Ela inicia servidores em portas livres e verifica configuração, persistência,
+imagens completas, admissão, taxa padrão, divisão por IP e painel agregado.
+O arquivo `teste.sh` é um roteiro manual legado, separado dessa suíte.
 
 ## Revisão de 19/10/2026
 

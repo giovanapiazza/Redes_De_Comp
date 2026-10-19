@@ -1,91 +1,74 @@
-# Primeira versão — servidor HTTP/1.1 concorrente
+# Servidor HTTP/1.1 com QoS — Redes de Computadores
 
+Equipe: Giovana Piazza, Luis Felipe Maccalli e Vitor Moreira.
+Universidade Federal do Pampa (Unipampa), 2026/2.
 
-- Giovana Piazza 
-- Luis Felipe Maccalli
-- Vitor Moreira
+Servidor didático em C para Linux, com sockets TCP e Pthreads.
 
+## Versões e arquivos
 
-## Implementação
+- [V1](V1/README.md): primeira versão, concorrência e conexões persistentes.
+- [V2](V2/README.md): segunda versão, apresentada na terceira entrega, com QoS.
+- [Relatório final da terceira entrega](documentos/relatorio-terceira-entrega-final.pdf).
+- [Evidências da revisão da V2](evidencias/revisao-v2/resultados.json).
+- [Guia de Wireshark e IPTraf](V2/COMO-VALIDAR.md).
 
-Servidor em **C para Linux**, com **sockets TCP IPv4 e Pthreads**. Cada conexão
-aceita recebe uma thread; a mesma thread atende várias requisições do cliente
-no mesmo socket. Implementa um subconjunto de HTTP/1.1 para conteúdo estático:
+A pasta documentos contém somente o PDF final. Templates SBC, fontes LaTeX e
+relatórios intermediários foram retirados da versão atual do repositório.
+V1, V2 e evidências ficam na raiz, sem uma cópia duplicada em terceira-entrega.
 
-- GET e HEAD, arquivo padrão `index.html`, Content-Length e tipos MIME;
-- persistência por padrão e encerramento com `Connection: close`;
-- buffer para cabeçalhos fragmentados e requisições concatenadas (pipelining);
-- respostas de erro e rejeição de framing ambíguo;
-- bloqueio de `..`, sequências codificadas perigosas e links simbólicos;
-- logs por requisição e encerramento por Ctrl+C ou SIGTERM.
+## Dependências
 
-Limites técnicos: 128 conexões, 100 requisições por conexão, cabeçalhos de
-16 KiB e prazo de 10 s para concluir cada cabeçalho. O envio tem timeout por
-operação. O limite de conexões protege recursos; **não é controle de admissão
-por vazão/QoS**. É um servidor didático, sem suporte completo ao padrão HTTP.
+Linux, GCC, Make, Python 3 e curl. Para a avaliação complementar: tcpdump,
+Wireshark e IPTraf-ng.
 
-**A próxima versão** deve acrescentar taxa por IP, taxa padrão de 1000 kbps,
-compartilhamento da taxa entre sockets do mesmo IP, controle de admissão
-baseado na vazão do servidor e visualização/estimativas exigidas no enunciado.
-Esta versão não implementa esses mecanismos.
+## Executar a V2
 
-## Compilar e executar
-
-Dependências: Linux, GCC, Make e Python 3 (somente geração das imagens/testes).
-Em Ubuntu/Debian, se necessário:
+Na raiz do repositório:
 
 ```bash
-sudo apt update
-sudo apt install build-essential python3 curl tcpdump wireshark iptraf-ng
-```
-
-A partir desta pasta:
-
-```bash
+cd V2
 make
 make fixtures
-./server 8080 www
+./server 8080 www 5000 taxas.txt 2> server.log
 ```
 
-Ou `make run`. Abra `http://localhost:8080/`. Para acesso de outro computador,
-use `http://IP_DO_SERVIDOR:8080/` e permita a porta no firewall, se necessário.
-O servidor escuta em todas as interfaces IPv4. Não execute como root.
-As imagens BMP válidas são geradas localmente: duas imagens de 12.582.966
-bytes cada (aproximadamente 12 MiB). Elas não ficam no controle de versão;
-execute `make fixtures` depois de baixar o código.
+Abra http://localhost:8080/ . O parâmetro 5000 é a capacidade de admissão,
+em kbps. O arquivo taxas.txt usa IPv4 e taxa inteira positiva em kbps.
+IPs não cadastrados usam 1000 kbps quando houver capacidade disponível.
+As duas imagens de aproximadamente 12 MiB são geradas por make fixtures.
 
-Teste manual de persistência (o curl pode reutilizar a conexão entre as URLs):
+## Testar
 
 ```bash
-curl --http1.1 -v -o /dev/null http://localhost:8080/ -o /dev/null http://localhost:8080/imagem1.bmp
+cd V2
+make check
 ```
 
-O teste automatizado verifica explicitamente quatro respostas no mesmo socket:
+A suíte cria e encerra seu próprio servidor. Não exige servidor aberto nem root.
+Os resultados são gravados em evidencias/revisao-v2 e substituem os arquivos dessa
+execução local. O registro publicado da revisão contém 17 testes aprovados.
 
-```bash
-make test
-```
+## Funcionalidades e limites
 
-Os testes iniciam e encerram seu próprio servidor em uma porta livre; não é
-necessário manter `make run` em execução. Resultados são gravados em `results/`.
-Uma captura da etapa de persistência pode ser criada sem tcpdump se o processo
-já tiver permissão para usar AF_PACKET; se não tiver, apenas a captura é
-omitida. **Não rode a suíte inteira como root apenas para obter a captura.**
+A V2 acrescenta taxa por IP, divisão entre conexões, controle de admissão e
+painel com vazão agregada por IP. HTML não entra no limitador dos objetos.
+O intervalo HTML–objeto e as estimativas derivadas são didáticos; não medem
+diretamente RTT TCP, atraso unidirecional ou capacidade do enlace.
+O servidor implementa um subconjunto de HTTP/1.1.
 
+## Situação da avaliação
 
-## Organização
+O PCAP e os resultados originais estão em evidencias/v2. A revisão usou testes
+automatizados e inspeção programática do PCAP. A avaliação complementar com
+Wireshark/IPTraf continua pendente; não há novas medições dessas ferramentas.
+Ensaios em Ethernet/Wi-Fi com hosts distintos também permanecem pendentes.
 
-- `src/server.c`: implementação do servidor;
-- `Makefile`: compilação, execução e testes;
-- `www/index.html`: página com duas imagens referenciadas;
-- `tools/generate_images.py`: gera os objetos maiores;
-- `tests/test_server.py`: testes de integração via sockets TCP reais;
-- `../evidencias/`: resultados da execução realizada na preparação da entrega;
-- `../documentos/`: relatório, fonte LaTeX e plano experimental.
+## Apoio de IA e referências
 
+A V1 teve apoio de OpenAI ChatGPT; a V2 original declara apoio de Claude
+(Anthropic). A revisão de validação, painel, testes e documentação teve apoio de
+OpenAI ChatGPT em 19/10/2026. A equipe deve revisar e compreender o código.
 
-Referências: especificação do trabalho (2026/2); material `HTTP_Aplicado.pdf`;
-Forouzan, *Redes de Computadores: uma abordagem top-down* (material fornecido);
-RFC 9112 — https://www.rfc-editor.org/rfc/rfc9112;
-RFC 9110 — https://www.rfc-editor.org/rfc/rfc9110.
-Nenhum trecho de implementação foi copiado desses documentos.
+Referências: especificação da disciplina 2026/2; Forouzan e Mosharraf,
+Redes de computadores: uma abordagem top-down; RFC 9110 e RFC 9112.

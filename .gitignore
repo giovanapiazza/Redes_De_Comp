@@ -1,1 +1,20 @@
-*:Zone.Identifier
+# Arquivos gerados localmente
+V1/server
+V2/server
+V1/www/*.bmp
+V2/www/*.bmp
+V1/www/*.bin
+V2/www/*.bin
+V1/results/
+**/__pycache__/
+*.pyc
+*.aux
+*.out
+*.fdb_latexmk
+*.fls
+# Logs do servidor ficam fora das evidencias versionadas
+V1/server.log
+V2/server.log
+# Documentos: manter somente o PDF final
+/documentos/*
+!/documentos/relatorio-terceira-entrega-final.pdf
