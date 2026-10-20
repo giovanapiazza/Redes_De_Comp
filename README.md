@@ -10,8 +10,9 @@ Servidor didático em C para Linux, com sockets TCP e Pthreads.
 - [V1](V1/README.md): primeira versão, concorrência e conexões persistentes.
 - [V2](V2/README.md): segunda versão, apresentada na terceira entrega, com QoS.
 - [Relatório final da terceira entrega](documentos/relatorio-terceira-entrega-final.pdf).
-- [Evidências da revisão da V2](evidencias/revisao-v2/resultados.json).
-- [Guia de Wireshark e IPTraf](V2/COMO-VALIDAR.md).
+- [Evidências dos testes automatizados da V2](evidencias/revisao-v2/resultados.json).
+- [Evidências de Wireshark e IPTraf-ng](evidencias/ferramentas-v2/README.md).
+- [Guia para repetir a captura com Wireshark e IPTraf](V2/COMO-VALIDAR.md).
 
 A pasta documentos contém somente o PDF final. Templates SBC, fontes LaTeX e
 relatórios intermediários foram retirados da versão atual do repositório.
@@ -19,8 +20,7 @@ V1, V2 e evidências ficam na raiz, sem uma cópia duplicada em terceira-entrega
 
 ## Dependências
 
-Linux, GCC, Make, Python 3 e curl. Para a avaliação complementar: tcpdump,
-Wireshark e IPTraf-ng.
+Linux, GCC, Make, Python 3 e curl. Para a avaliação: Wireshark e IPTraf-ng.
 
 ## Executar a V2
 
@@ -59,16 +59,13 @@ O servidor implementa um subconjunto de HTTP/1.1.
 
 ## Situação da avaliação
 
-O PCAP e os resultados originais estão em evidencias/v2. A revisão usou testes
-automatizados e inspeção programática do PCAP. A avaliação complementar com
-Wireshark/IPTraf continua pendente; não há novas medições dessas ferramentas.
-Ensaios em Ethernet/Wi-Fi com hosts distintos também permanecem pendentes.
+O PCAP e os resultados originais estão em evidencias/v2. Avaliação com Wireshark
+(dumpcap) e IPTraf-ng em evidencias/ferramentas-v2. Ethernet/Wi-Fi não realizados.
 
 ## Apoio de IA e referências
 
-A V1 teve apoio de OpenAI ChatGPT; a V2 original declara apoio de Claude
-(Anthropic). A revisão de validação, painel, testes e documentação teve apoio de
-OpenAI ChatGPT em 19/10/2026. A equipe deve revisar e compreender o código.
+Tivemos auxílio de IA (OpenAI ChatGPT e Anthropic Claude) no relatório e na
+correção dos códigos, principalmente dos testes automáticos.
 
 Referências: especificação da disciplina 2026/2; Forouzan e Mosharraf,
 Redes de computadores: uma abordagem top-down; RFC 9110 e RFC 9112.

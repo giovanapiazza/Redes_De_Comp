@@ -1,0 +1,4 @@
+Capturing on 'Loopback: lo'
+File: /home/vitor/captura-v2/experimento-v2.pcap
+Packets captured: 15465
+Packets received/dropped on interface 'Loopback: lo': 15465/0 (pcap:0/dumpcap:0/flushed:0/ps_ifdrop:0) (100.0%)
