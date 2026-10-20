@@ -1,0 +1,213 @@
+{
+ "pacotes": 15465,
+ "duracao_s": 202.276,
+ "conexoes": [
+  {
+   "cliente": "127.0.0.4:36354",
+   "inicio_s": 0.0,
+   "fim_s": 101.025,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     9.8e-05,
+     "/"
+    ],
+    [
+     0.000681,
+     "/imagem1.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     0.000458,
+     "200"
+    ],
+    [
+     0.000731,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 12583810,
+   "vazao_objeto_kbps": 996.4,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.1:36070",
+   "inicio_s": 0.0,
+   "fim_s": 50.63,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     9.8e-05,
+     "/"
+    ],
+    [
+     0.000702,
+     "/imagem1.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     0.000503,
+     "200"
+    ],
+    [
+     0.000771,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 12583810,
+   "vazao_objeto_kbps": 1988.3,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.3:46050",
+   "inicio_s": 0.0,
+   "fim_s": 67.424,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     0.000101,
+     "/"
+    ],
+    [
+     0.000701,
+     "/imagem1.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     0.00051,
+     "200"
+    ],
+    [
+     0.000744,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 12583810,
+   "vazao_objeto_kbps": 1493.0,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.2:44864",
+   "inicio_s": 3.002,
+   "fim_s": 3.002,
+   "handshake": true,
+   "fin": 0,
+   "rst": 1,
+   "requisicoes": [
+    [
+     3.002012,
+     "/imagem2.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     3.00205,
+     "503"
+    ]
+   ],
+   "bytes_servidor": 197,
+   "vazao_objeto_kbps": 25821.2,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.1:40774",
+   "inicio_s": 101.033,
+   "fim_s": 202.269,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     101.03327,
+     "/"
+    ],
+    [
+     101.033765,
+     "/imagem2.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     101.033467,
+     "200"
+    ],
+    [
+     101.033829,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 12583810,
+   "vazao_objeto_kbps": 994.4,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.1:40772",
+   "inicio_s": 101.033,
+   "fim_s": 202.269,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     101.03327,
+     "/"
+    ],
+    [
+     101.033896,
+     "/imagem2.bmp"
+    ]
+   ],
+   "respostas": [
+    [
+     101.033566,
+     "200"
+    ],
+    [
+     101.033984,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 12583810,
+   "vazao_objeto_kbps": 994.4,
+   "retransmissoes": 0
+  },
+  {
+   "cliente": "127.0.0.2:33288",
+   "inicio_s": 202.275,
+   "fim_s": 202.276,
+   "handshake": true,
+   "fin": 2,
+   "rst": 0,
+   "requisicoes": [
+    [
+     202.275504,
+     "/index.html"
+    ]
+   ],
+   "respostas": [
+    [
+     202.275829,
+     "200"
+    ]
+   ],
+   "bytes_servidor": 693,
+   "vazao_objeto_kbps": null,
+   "retransmissoes": 0
+  }
+ ],
+ "requisicoes_get": 12,
+ "respostas": {
+  "200": 11,
+  "503": 1
+ },
+ "retransmissoes": 0
+}

@@ -5,7 +5,7 @@ cd "$(dirname "$0")"
 INTERFACE=${1:-lo}
 IP_SERVIDOR=${2:-127.0.0.1}
 PORTA=${PORTA:-8095}
-SAIDA=../evidencias/ferramentas-v2
+SAIDA=../evidencias/ferramentas-equipe
 for programa in tcpdump curl python3; do
  command -v "$programa" >/dev/null || { echo "Instale $programa antes de continuar." >&2; exit 1; }
 done

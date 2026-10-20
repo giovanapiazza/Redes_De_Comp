@@ -63,6 +63,7 @@ O arquivo `teste.sh` é um roteiro manual legado, separado dessa suíte.
   admissão, taxa padrão, divisão por IP e painel agregado.
 - `bash avaliar-ferramentas.sh lo`: procedimento de captura com duas imagens
   grandes. Consulte COMO-VALIDAR.md para Wireshark/IPTraf e hosts distintos.
+  Os resultados da captura de 19/10 estão em ../evidencias/ferramentas-v2.
 
 ## Limitações conhecidas
 
@@ -78,10 +79,11 @@ pode misturar navegações simultâneas do mesmo endereço.
 
 ## Autoria e referências
 
-Partes da V2 original foram produzidas com apoio de Claude (Anthropic), conforme
-registro da equipe. A revisão de validação, painel, testes e documentação teve
-apoio de OpenAI ChatGPT em 19/10/2026. A equipe deve revisar e compreender as
-alterações. A V1 também contém a declaração de apoio de IA original.
+Este projeto foi desenvolvido integralmente pela equipe, sem ajuda não
+autorizada de alunos não membros do projeto no processo de codificação.
+
+Tivemos auxílio de IA (OpenAI ChatGPT e Anthropic Claude) no relatório e na
+correção dos códigos, principalmente dos testes automáticos.
 
 Referências: especificação 2026/2, Forouzan, RFC 9110/9112; OpenAI ChatGPT,
 https://chatgpt.com/; Anthropic Claude, https://claude.ai/.

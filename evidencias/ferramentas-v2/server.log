@@ -1,0 +1,12 @@
+ip=127.0.0.4 socket=6 request=1 method=GET target=/ status=200 bytes=532 connection=keep-alive active=3
+ip=127.0.0.3 socket=7 request=1 method=GET target=/ status=200 bytes=532 connection=keep-alive active=3
+ip=127.0.0.1 socket=5 request=1 method=GET target=/ status=200 bytes=532 connection=keep-alive active=3
+RECUSADO ip=127.0.0.2 taxa=3000 kbps (vazao usada 4500 de 6000)
+ip=127.0.0.1 socket=5 request=2 method=GET target=/imagem1.bmp status=200 bytes=12582966 connection=keep-alive active=3
+ip=127.0.0.3 socket=7 request=2 method=GET target=/imagem1.bmp status=200 bytes=12582966 connection=keep-alive active=2
+ip=127.0.0.4 socket=6 request=2 method=GET target=/imagem1.bmp status=200 bytes=12582966 connection=keep-alive active=1
+ip=127.0.0.1 socket=5 request=1 method=GET target=/ status=200 bytes=532 connection=keep-alive active=2
+ip=127.0.0.1 socket=6 request=1 method=GET target=/ status=200 bytes=532 connection=keep-alive active=2
+ip=127.0.0.1 socket=6 request=2 method=GET target=/imagem2.bmp status=200 bytes=12582966 connection=keep-alive active=2
+ip=127.0.0.1 socket=5 request=2 method=GET target=/imagem2.bmp status=200 bytes=12582966 connection=keep-alive active=1
+ip=127.0.0.2 socket=5 request=1 method=GET target=/index.html status=200 bytes=532 connection=keep-alive active=1

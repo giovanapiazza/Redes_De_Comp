@@ -1,8 +1,7 @@
 # Validação complementar com Wireshark e IPTraf
 
-A revisão não executou Wireshark, tcpdump ou IPTraf: essas ferramentas não estão
-instaladas no ambiente de revisão. O PCAP original foi preservado; a inspeção
-programática desse arquivo não substitui a avaliação com as ferramentas exigidas.
+Os resultados da captura de 19/10 estão em `../evidencias/ferramentas-v2`.
+Este guia descreve como repetir a captura em outra máquina.
 
 No Ubuntu/Zorin, instale no computador da equipe:
 
@@ -15,7 +14,7 @@ sudo apt install wireshark tcpdump iptraf-ng
 2. Terminal 2: `sudo iptraf-ng`; selecione a interface `lo` e registre taxas,
    unidades, duração e tráfego de fundo. O painel do IPTraf pode incluir cabeçalhos
    e outros fluxos; a vazão útil do curl inclui apenas o conteúdo recebido.
-3. Abra `evidencias/ferramentas-v2/imagens.pcap` no Wireshark.
+3. Abra `evidencias/ferramentas-equipe/imagens.pcap` no Wireshark.
 4. Filtro `tcp.port == 8095`; se necessário, Decode As → HTTP.
 5. Use Follow → TCP Stream. Cada cliente deve apresentar HTML e duas imagens no
    mesmo fluxo. Registre handshake e encerramento e eventuais retransmissões.

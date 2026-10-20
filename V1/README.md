@@ -27,6 +27,11 @@ A suíte inicia seu próprio servidor. Não é necessário mantê-lo aberto.
 A geração das imagens deve ser feita antes dos testes. Os arquivos BMP e o
 executável são gerados localmente e não precisam ser versionados.
 
+## Autoria
+
+Este projeto foi desenvolvido integralmente pela equipe, sem ajuda não
+autorizada de alunos não membros do projeto no processo de codificação.
+
 ## Limitações e referências
 
 Subconjunto didático de HTTP/1.1, sem TLS ou conformidade integral com as RFCs.

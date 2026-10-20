@@ -1,0 +1,25 @@
+\documentclass[border=4pt]{standalone}
+\usepackage{pgfplots}\pgfplotsset{compat=1.17}
+\usepackage[utf8]{inputenc}\usepackage[T1]{fontenc}
+\begin{document}
+\begin{tikzpicture}
+\begin{axis}[width=15cm,height=7cm,xlabel={Tempo desde o início da captura (s)},ylabel={Vazão (kbps)},
+ xmin=0,xmax=203,ymin=0,ymax=2500,grid=major,grid style={gray!25},
+ legend style={at={(0.5,1.02)},anchor=south,legend columns=3,font=\small,draw=none},
+ table/col sep=comma, every axis plot/.append style={line width=0.9pt}]
+\addplot[blue] table[x=t_s,y=con_127.0.0.1_36070,restrict x to domain=0:49]{vazao-1s.csv};
+\addlegendentry{A: 127.0.0.1 (2000 kbps)}
+\addplot[orange!90!black] table[x=t_s,y=con_127.0.0.3_46050,restrict x to domain=0:66]{vazao-1s.csv};
+\addlegendentry{A: 127.0.0.3 (1500 kbps)}
+\addplot[green!50!black] table[x=t_s,y=con_127.0.0.4_36354,restrict x to domain=0:100]{vazao-1s.csv};
+\addlegendentry{A: 127.0.0.4 (padrão, 1000 kbps)}
+\addplot[blue,dashed,line width=1.6pt] table[x=t_s,y=con_127.0.0.1_40772,restrict x to domain=101:201]{vazao-1s.csv};
+\addlegendentry{C: 127.0.0.1, conexão 1}
+\addplot[red,dashed] table[x=t_s,y=con_127.0.0.1_40774,restrict x to domain=101:201]{vazao-1s.csv};
+\addlegendentry{C: 127.0.0.1, conexão 2}
+\addplot[black] table[x=t_s,y=ip_127.0.0.1,restrict x to domain=101:201]{vazao-1s.csv};
+\addlegendentry{C: soma de 127.0.0.1}
+\draw[gray,densely dotted] (axis cs:3,0) -- (axis cs:3,2500) node[pos=0.97,right,font=\scriptsize]{B: 503};
+\end{axis}
+\end{tikzpicture}
+\end{document}
