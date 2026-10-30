@@ -1,4 +1,4 @@
-"""Testes da revisao V2. Apoio: OpenAI ChatGPT, 19/10/2026."""
+"""Testes da revisao V2."""
 from pathlib import Path
 import subprocess, tempfile, socket, time, http.client, concurrent.futures, hashlib, json, re, os
 ROOT=Path(__file__).resolve().parents[1]
