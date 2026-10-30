@@ -1,9 +1,3 @@
-/* Servidor HTTP com QoS - V2 (trabalho de Redes 2026/2)
- * Giovana Piazza, Luis Felipe Maccalli, Vitor Moreira
- * A base (HTTP/1.1, threads, persistencia) eh a mesma da V1. O que mudou ta marcado
- * com comentario: taxa por IP, divisao da taxa, controle de admissao e painel.
- * Revisao de validacao e painel: apoio de OpenAI ChatGPT, 19/10/2026.
- * Partes do codigo da V2 foram feitas com apoio de IA (Claude), revisadas pela equipe. */
 #define _GNU_SOURCE
 #include <arpa/inet.h>
 #include <ctype.h>
@@ -27,10 +21,9 @@
 #define CONNECTION_MAX 128
 #define REQUEST_MAX 100
 #define TIMEOUT_MS 10000
-/* ===== coisas novas da V2 (QoS) ===== */
-#define TAXA_PADRAO 1000   // kbps, quando o ip nao ta no arquivo (pedido do enunciado)
-#define MAX_TAXAS 100      // maximo de linhas no arquivo de taxas, acho que 100 ta bom
-#define TAM_BLOCO 8192     // bloco menor que na V1 pra controlar melhor a taxa
+#define TAXA_PADRAO 1000   
+#define MAX_TAXAS 100      
+#define TAM_BLOCO 8192     
 static volatile sig_atomic_t stopping = 0;
 static int root_fd;
 static pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER;
@@ -39,14 +32,11 @@ static int clients[CONNECTION_MAX];
 static int active = 0;
 typedef struct { int fd, slot, ip_idx; char ip[INET_ADDRSTRLEN]; } Client;
 
-/* tabela que vem do arquivo taxas.txt (formato: IP KBPS, uma por linha) */
 typedef struct { char ip[INET_ADDRSTRLEN]; long kbps; } Taxa;
 static Taxa taxas[MAX_TAXAS];
 static int n_taxas = 0;
 
-/* info de cada IP que ta sendo atendido, usado pra dividir a banda e pro painel.
- * a gente nao apaga quando o cliente sai pq senao perde o tempo do html (wget abre
- * outra conexao pra cada arquivo) */
+
 typedef struct {
     char ip[INET_ADDRSTRLEN];
     int conexoes;              // quantas conexoes abertas desse ip agora
@@ -107,7 +97,6 @@ static void error_response(int fd, int status, int close_it, int head) {
     if (header(fd, status, "text/plain; charset=utf-8", (uint64_t)n, close_it) == 0 && !head)
         (void)send_all(fd, body, (size_t)n);
 }
-/* Lê apenas o cabecalho; preserva bytes da proxima requisicao em buffer. */
 static int read_header(int fd, char *buf, size_t *used, size_t *length) {
     int64_t deadline = now_ms() + TIMEOUT_MS;
     for (;;) {
@@ -191,7 +180,6 @@ static int parse_request(char *buf, size_t len, Request *r) {
     if (te) return 501;
     if (expect) return 417;
     if (strcmp(r->method, "GET") && !r->head) return 405;
-    /* Nao aceitar corpos evita interpretar payload como proxima requisicao. */
     if (body) return 400;
     return 200;
 }
@@ -201,7 +189,6 @@ static int hex(char c) {
     if (c >= 'A' && c <= 'F') return c - 'A' + 10;
     return -1;
 }
-/* Percorre componentes com openat + O_NOFOLLOW; nao sai da raiz nem segue symlinks. */
 static int open_resource(const char *target, int *status, char *path) {
     size_t j = 0;
     for (size_t i = 1; target[i] && target[i] != '?'; i++) {
@@ -234,7 +221,6 @@ static int open_resource(const char *target, int *status, char *path) {
     if (fstat(fd, &st) || !S_ISREG(st.st_mode)) { close(fd); *status = 403; return -1; }
     return fd;
 }
-/* Leitura validada do arquivo auxiliar de taxas. */
 static int numero_positivo(const char *texto, long *valor) {
     if (!texto || !*texto) return 0;
     for (const char *p = texto; *p; p++) if (!isdigit((unsigned char)*p)) return 0;
@@ -242,7 +228,6 @@ static int numero_positivo(const char *texto, long *valor) {
     if (errno || *fim || n < 1 || n > 1000000000L) return 0;
     *valor = n; return 1;
 }
-/* Rejeita configuracao invalida e admite comentarios iniciados por #. */
 static int carrega_taxas(const char *arquivo, int obrigatorio) {
     FILE *f = fopen(arquivo, "r");
     if (!f) {
@@ -276,8 +261,6 @@ static long busca_taxa(const char *ip) {
         if (strcmp(taxas[i].ip, ip) == 0) return taxas[i].kbps;
     return TAXA_PADRAO;
 }
-/* procura o ip na tabela, se nao tiver pega um lugar vazio ou de alguem que ja saiu.
- * tem que chamar com o lock pego! */
 static int acha_ip(const char *ip) {
     int livre = -1;
     for (int i = 0; i < CONNECTION_MAX; i++) {
@@ -291,8 +274,6 @@ static int acha_ip(const char *ip) {
     }
     return livre;
 }
-/* painel em "tempo real": a cada 1 segundo limpa a tela e mostra os clientes.
- * os logs das requisicoes foram pro stderr pra nao baguncar a tela */
 static void *painel(void *arg) {
     (void)arg;
     while (!stopping) {
@@ -352,9 +333,6 @@ static void *serve(void *arg) {
                 // html vai sem limite, o resto (imagens) vai com taxa controlada
                 int eh_html = strncmp(mime(path), "text/html", 9) == 0;
                 int64_t agora = now_ms();
-                /* estimativa do RTT: tempo entre pedir o html e pedir o primeiro objeto.
-                 * nao eh o RTT de verdade pq inclui o tempo de mandar o html e o cliente
-                 * processar, mas foi o que o professor pediu */
                 pthread_mutex_lock(&lock);
                 if (eh_html) {
                     ips[c->ip_idx].t_html = agora;
@@ -380,13 +358,10 @@ static void *serve(void *arg) {
                     result = send_all(c->fd, chunk, (size_t)n);
                     if (!result) { bytes += (uint64_t)n; left -= (uint64_t)n; }
                     if (!result && !eh_html) {
-                        /* controle de taxa: divide a taxa do ip pelo numero de conexoes dele
-                         * (le de novo a cada bloco, assim se abrir outra conexao ja divide) */
                         pthread_mutex_lock(&lock);
                         double taxa_con = (double)ips[c->ip_idx].taxa / ips[c->ip_idx].conexoes;
                         ips[c->ip_idx].bytes += (unsigned long long)n;
                         pthread_mutex_unlock(&lock);
-                        /* Espera fora do mutex; preserva taxas fracionarias por conexao. */
                         double segundos = (double)n * 8.0 / (taxa_con * 1000.0);
                         struct timespec espera = {(time_t)segundos,
                             (long)((segundos - (time_t)segundos) * 1000000000.0)};
@@ -459,10 +434,6 @@ int main(int argc, char **argv) {
         pthread_mutex_lock(&lock);
         int slot = -1;
         for (int i = 0; i < CONNECTION_MAX; i++) if (clients[i] == -1) { slot = i; break; }
-        /* CONTROLE DE ADMISSAO:
-         * - se o ip ja tem conexao aberta, deixa entrar, ele so vai dividir a taxa dele
-         * - se eh ip novo, so entra se a taxa dele cabe no que sobra da vazao maxima
-         * (o enunciado fala "1000 kbps se viavel", entendi que se nao couber recusa) */
         int idx = -1, admitido = 0;
         if (slot >= 0) {
             idx = acha_ip(ip);
